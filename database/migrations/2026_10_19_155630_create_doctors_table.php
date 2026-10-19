@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('doctors', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('specialty_id')->constrained()->cascadeOnDelete();
+            $table->string('full_name');
+            $table->string('medical_license_number')->unique(); //--کد نظام پزشکی--//
+            $table->string('consultation_fee');//--هزینه ویزیت--//
+            $table->string('verification_status')->default('pending'); //--status(approved,confirmed,pending)--(جهت صحت سنجی اطلاعات پزشک توسط ادمین)--//
+            $table->text('bio')->nullable();
             $table->timestamps();
         });
     }

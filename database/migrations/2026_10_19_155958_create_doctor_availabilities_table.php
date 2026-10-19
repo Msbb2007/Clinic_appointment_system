@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('doctor_availabilities', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('doctor_id')->constrained()->cascadeOnDelete();
+            $table->string('rrule'); //--قانون تکرار--//
+            $table->time('start_time'); // 09:00 //
+            $table->time('end_time'); // 13:00 //
+            $table->integer('slot_duration_minutes')->default(30);//مدت ویزیت(مثلا 30 دقیقه)//
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }

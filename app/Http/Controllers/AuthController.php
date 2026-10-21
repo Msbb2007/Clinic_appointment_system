@@ -72,10 +72,27 @@ class AuthController extends Controller
 
         $user = User::query()->where('username', $request->username)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'username' => ['اطلاعات ورودی نامعتبر است.'],
-            ]);
+        if ($user->role == 'doctor') {
+
+            $doctor = $user->doctor()->first();
+
+            if (! $doctor) {
+                throw ValidationException::withMessages([
+                    'username' => ['پروفایل پزشک یافت نشد.'],
+                ]);
+            }
+
+            if ($doctor->verification_status == 'pending') {
+                throw ValidationException::withMessages([
+                    'verification_status' => ['اطلاعات شما هنوز توسط ادمین بررسی نشده است']
+                ]);
+            }
+
+            if ($doctor->verification_status == 'rejected') {
+                throw ValidationException::withMessages([
+                    'verification_status' => ['اطلاعات شما توسط ادمین بررسی شده و رد شده است']
+                ]);
+            }
         }
 
         $token = $user->createToken('clinic_token')->plainTextToken;

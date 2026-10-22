@@ -15,6 +15,7 @@ class DoctorException extends Model
         'is_off',
         'start_time',
         'end_time',
+        'slot_duration_minutes'
     ];
 
     public function doctor()

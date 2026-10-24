@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Doctor_panel\DoctorAppointmentController;
 use App\Http\Controllers\Doctor_panel\DoctorAvailabilityController;
+use App\Http\Controllers\Doctor_panel\DoctorDashboardController;
 use App\Http\Controllers\DoctorExceptionController;
 use App\Http\Middleware\CheckDoctorProfile;
 use Illuminate\Http\Request;
@@ -36,6 +38,17 @@ Route::middleware(['auth:sanctum', CheckDoctorProfile::class])->group(function (
     Route::get('/doctor/exceptions/{id}', [DoctorExceptionController::class, 'show']);
     Route::put('/doctor/exceptions/{id}', [DoctorExceptionController::class, 'update']);
     Route::delete('/doctor/exceptions/{id}', [DoctorExceptionController::class, 'destroy']);
+
+    //مشاهده و مدیریت نوبت ها//
+    Route::get('/doctor/appointments', [DoctorAppointmentController::class, 'index']);
+    Route::put('/doctor/appointments/{id}/status', [DoctorAppointmentController::class, 'updateStatus']);
+
+    //داشبورد آماری//
+    Route::get('/doctor/dashboard/stats', [DoctorDashboardController::class, 'stats']);
+
+    //مدیریت پروفایل//
+    Route::get('/doctor/profile', [DoctorDashboardController::class, 'getProfile']);
+    Route::put('/doctor/profile', [DoctorDashboardController::class, 'updateProfile']);
 
     // دریافت اسلات‌های ۴ هفته آینده برای دیدن خود پزشک //
     Route::get('/doctor/slots', [DoctorAvailabilityController::class, 'slots']);

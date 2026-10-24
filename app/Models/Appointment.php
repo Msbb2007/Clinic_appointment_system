@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Appointment extends Model
 {
     protected $fillable=['appointment_date',
+        'doctor_id',
+        'patient_id',
+        'appointment_time',
         'start_time',
         'end_time',
         'status',

@@ -4,9 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Doctor_panel\DoctorAppointmentController;
 use App\Http\Controllers\Doctor_panel\DoctorAvailabilityController;
 use App\Http\Controllers\Doctor_panel\DoctorDashboardController;
-use App\Http\Controllers\DoctorExceptionController;
+use App\Http\Controllers\Doctor_panel\DoctorExceptionController;
 use App\Http\Middleware\CheckDoctorProfile;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // مسیرهای عمومی (بدون نیاز به توکن) //

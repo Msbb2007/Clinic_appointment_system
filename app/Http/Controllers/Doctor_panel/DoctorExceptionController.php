@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Doctor_panel;
 
+use App\Http\Controllers\Controller;
 use App\Models\DoctorException;
 use Illuminate\Http\Request;
 

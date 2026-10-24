@@ -80,8 +80,18 @@ class DoctorAvailabilityService
                 }
             }
 
-           // اگر در این روز اسلاتی وجود داشت، به لیست نهایی اضافه کن //
+           // اگر در این روز اسلاتی وجود داشت، به لیست نهایی اضافه می شود //
             if (!empty($daySlots)) {
+                // حذف اسلات‌های تکراری بر اساس ساعت شروع و پایان//
+                $daySlots = collect($daySlots)->unique(function ($slot) {
+                    return $slot['start_time'] . '-' . $slot['end_time'];
+                })->values()->all();
+
+               // مرتب‌سازی اسلات‌ها بر اساس ساعت شروع به صورت صعودی //
+                usort($daySlots, function ($a, $b) {
+                    return strcmp($a['start_time'], $b['start_time']);
+                });
+
                 $schedule[] = [
                     'date' => $dateString,
                     'day_of_week' => $dayName,
@@ -98,9 +108,17 @@ class DoctorAvailabilityService
         $slots = [];
         $current = Carbon::parse("$date $startTime");
         $end = Carbon::parse("$date $endTime");
+        $now = Carbon::now(); // زمان دقیق حال حاضر برای مقایسه//
 
         while ($current->copy()->addMinutes($durationMinutes)->lte($end)) {
             $slotStart = $current->format('H:i');
+
+            $slotDateTime = Carbon::parse("$date $slotStart");
+            if ($date === $now->toDateString() && $slotDateTime->lte($now)) {
+                $current->addMinutes($durationMinutes);
+                continue;
+            }
+
             $current->addMinutes($durationMinutes);
             $slotEnd = $current->format('H:i');
 

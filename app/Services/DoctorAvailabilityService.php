@@ -24,6 +24,12 @@ class DoctorAvailabilityService
             ->get()
             ->keyBy(fn($item) => $item->date);// کلید بر اساس تاریخ برای دسترسی سریع //
 
+        $bookedAppointments = $doctor->appointments()
+            ->whereBetween('appointment_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->whereIn('status', ['pending', 'completed'])
+            ->get()
+            ->groupBy('appointment_date');
+
         $period = CarbonPeriod::create($startDate, $endDate);
 
         foreach ($period as $date) {
@@ -86,6 +92,26 @@ class DoctorAvailabilityService
                 $daySlots = collect($daySlots)->unique(function ($slot) {
                     return $slot['start_time'] . '-' . $slot['end_time'];
                 })->values()->all();
+
+               // بررسی و تغییر وضعیت اسلات‌هایی که قبلاً رزرو شده‌اند //
+                $dayBookings = $bookedAppointments->get($dateString, collect());
+
+                //از & این استفاده می کنیم برای دسترسی به ارایه اصلی
+                // و نه ساختن کپی تا روی ایندکس اون ارایه دسترسی داشته باشیم تا ویرایش کنیم//
+                foreach ($daySlots as &$slot) {
+                    // چک می‌کنیم آیا این ساعت دقیقاً توسط کسی رزرو شده یا خیر//
+                    $isBooked = $dayBookings->contains(function ($appointment) use ($slot) {
+                        $dbTime = substr($appointment->start_time, 0, 5);
+                        $slotTime = substr($slot['start_time'], 0, 5);
+
+                        return $dbTime === $slotTime;
+                    });
+
+                    if ($isBooked) {
+                        $slot['status'] = 'booked'; //تغییر وضعیت به رزرو شده//
+                    }
+                }
+                unset($slot); //پاک کردن رفرنس حلقه تا ریست شود//
 
                // مرتب‌سازی اسلات‌ها بر اساس ساعت شروع به صورت صعودی //
                 usort($daySlots, function ($a, $b) {

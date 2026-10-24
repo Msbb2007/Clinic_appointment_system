@@ -6,16 +6,18 @@ use App\Http\Controllers\Doctor_panel\DoctorAvailabilityController;
 use App\Http\Controllers\Doctor_panel\DoctorDashboardController;
 use App\Http\Controllers\Doctor_panel\DoctorExceptionController;
 use App\Http\Controllers\Patient_panel\PatientDoctorController;
+use App\Http\Controllers\Patient_panel\PatientProfileController;
+use App\Http\Controllers\Patient_panel\PatientAppointmentController;
 use App\Http\Middleware\CheckDoctorProfile;
+use App\Http\Middleware\CheckPatientUserRole;
 use Illuminate\Support\Facades\Route;
 
-// مسیرهای عمومی (بدون نیاز به توکن) به اصطلاح همونhome پیج //
+// مسیرهای عمومی (بدون نیاز به توکن) به اصطلاح همونhomepage //
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/doctor_register', [AuthController::class, 'doctorRegister']);
-
-Route::get('/patients/doctors', [PatientDoctorController::class, 'index']);
-Route::get('/patients/doctors/{doctor}/slots', [PatientDoctorController::class, 'slots']);
+Route::get('doctors', [PatientDoctorController::class, 'index']);
+Route::get('doctors/{doctor}/slots', [PatientDoctorController::class, 'slots']);
 
 // مسیرهای نیازمند احراز هویت (با توکن Sanctum) //
 Route::middleware('auth:sanctum')->group(function () {
@@ -60,6 +62,24 @@ Route::middleware(['auth:sanctum', CheckDoctorProfile::class])->prefix('doctor')
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-Route::middleware(['auth:sanctum', CheckPatientProfile::class])->group(function () {
+//مسیر های پنل کاربر عادی//
+Route::middleware(['auth:sanctum',CheckPatientUserRole::class])->prefix('patient')->group(function () {
 
+    //مشاهده لیست دکترها و اسلات‌ها برای رزرو//
+    Route::get('/doctors', [PatientDoctorController::class, 'index']);
+    Route::get('/doctors/{doctor}/slots', [PatientDoctorController::class, 'slots']);
+
+    //مشاهده و ویرایش پروفایل//
+    Route::post('/profile', [PatientProfileController::class, 'storeOrUpdate']);
+    Route::get('/profile', [PatientProfileController::class, 'show']);
+
+    //  روت‌هایی که حتماً نیازمند این هستند که کاربر پروفایل بیمار داشته باشد (محافظت با Gate)//
+    Route::middleware('can:is-patient')->group(function () {
+        // مدیریت و ثبت نوبت‌ها//
+        Route::post('/appointments', [PatientAppointmentController::class, 'store']);
+        Route::get('/appointments', [PatientAppointmentController::class, 'index']);
+        Route::delete('/appointments/{id}', [PatientAppointmentController::class, 'cancel']);
+    });
+
+    Route::post('/logout', [AuthController::class, 'logout']);
 });

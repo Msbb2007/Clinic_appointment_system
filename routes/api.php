@@ -5,6 +5,7 @@ use App\Http\Controllers\Doctor_panel\DoctorAppointmentController;
 use App\Http\Controllers\Doctor_panel\DoctorAvailabilityController;
 use App\Http\Controllers\Doctor_panel\DoctorDashboardController;
 use App\Http\Controllers\Doctor_panel\DoctorExceptionController;
+use App\Http\Controllers\Patient_panel\PatientDashboardController;
 use App\Http\Controllers\Patient_panel\PatientDoctorController;
 use App\Http\Controllers\Patient_panel\PatientProfileController;
 use App\Http\Controllers\Patient_panel\PatientAppointmentController;
@@ -64,6 +65,9 @@ Route::middleware(['auth:sanctum', CheckDoctorProfile::class])->prefix('doctor')
 
 //مسیر های پنل کاربر عادی//
 Route::middleware(['auth:sanctum',CheckPatientUserRole::class])->prefix('patient')->group(function () {
+
+    // مسیر داشبورد بیمار//
+    Route::get('/dashboard', [PatientDashboardController::class, 'index']);
 
     //مشاهده لیست دکترها و اسلات‌ها برای رزرو//
     Route::get('/doctors', [PatientDoctorController::class, 'index']);

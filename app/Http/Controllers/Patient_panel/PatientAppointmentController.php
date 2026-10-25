@@ -30,6 +30,13 @@ class PatientAppointmentController extends Controller
 
         $doctor = Doctor::query()->findOrFail($doctorId);
 
+        if ($doctor->verification_status=='pending'||$doctor->verification_status=='rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'پروفایلی برای این پزشک یافت نشد.'
+            ]);
+        }
+
         $schedule = $availabilityService->getDoctorSlots($doctor);
 
         $daySchedule = collect($schedule)->firstWhere('date', $date);
@@ -99,13 +106,14 @@ class PatientAppointmentController extends Controller
         // سفارشی‌سازی خروجی برای خوانایی بهتر در پنل بیمار//
         $appointments->getCollection()->transform(function ($appointment) {
             return [
+                'id' => $appointment->id,
                 'doctor_name' => $appointment->doctor?->full_name ?? 'دکتر',
                 'specialty' => $appointment->doctor?->specialty?->name ?? 'متفرقه',
                 'appointment_date' => $appointment->appointment_date,
                 'start_time' => $appointment->start_time,
                 'end_time' => $appointment->end_time,
                 'status' => $appointment->status, // completed, pending, cancelled //
-                'fee' => $appointment->doctor->consulation_fee,
+                'fee' => $appointment->doctor->consultation_fee,
                 'created_at' => $appointment->created_at->toDateTimeString(),
             ];
         });
@@ -147,7 +155,7 @@ class PatientAppointmentController extends Controller
         }
 
         // بررسی اینکه آیا زمان نوبت گذشته است یا خیر//
-        $appointmentDateTime = Carbon::parse($appointment->date . ' ' . $appointment->start_time);
+        $appointmentDateTime = Carbon::parse($appointment->appointment_date . ' ' . $appointment->start_time);
         if ($appointmentDateTime->isPast()) {
             return response()->json([
                 'success' => false,

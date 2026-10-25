@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin_panel\AdminDashboardController;
+use App\Http\Controllers\Admin_panel\AdminUserController;
+use App\Http\Controllers\Admin_panel\DoctorVerificationController;
+use App\Http\Controllers\Admin_panel\SpecialtyController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Doctor_panel\DoctorAppointmentController;
 use App\Http\Controllers\Doctor_panel\DoctorAvailabilityController;
@@ -9,6 +13,7 @@ use App\Http\Controllers\Patient_panel\PatientDashboardController;
 use App\Http\Controllers\Patient_panel\PatientDoctorController;
 use App\Http\Controllers\Patient_panel\PatientProfileController;
 use App\Http\Controllers\Patient_panel\PatientAppointmentController;
+use App\Http\Middleware\CheckAdminUserRole;
 use App\Http\Middleware\CheckDoctorProfile;
 use App\Http\Middleware\CheckPatientUserRole;
 use Illuminate\Support\Facades\Route;
@@ -86,4 +91,23 @@ Route::middleware(['auth:sanctum',CheckPatientUserRole::class])->prefix('patient
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+//مسیرهای پنل admin//
+Route::middleware(['auth:sanctum',CheckAdminUserRole::class])->prefix('admin')->group(function () {
+    //داشبورد و آمار کلی//
+    Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+
+    // مدیریت و تایید پزشکان//
+    Route::get('/doctors', [DoctorVerificationController::class, 'index']);
+    Route::patch('/doctors/{doctor}/verification', [DoctorVerificationController::class, 'updateStatus']);
+
+    //  مدیریت تخصص‌ها //
+    Route::get('/specialties', [SpecialtyController::class, 'index']);
+    Route::post('/specialties', [SpecialtyController::class, 'store']);
+    Route::put('/specialties/{specialty}', [SpecialtyController::class, 'update']);
+    Route::delete('/specialties/{specialty}', [SpecialtyController::class, 'destroy']);
+
+    // مدیریت کاربران
+    Route::get('/users', [AdminUserController::class, 'index']);
 });

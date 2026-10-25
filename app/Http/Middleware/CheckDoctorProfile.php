@@ -14,7 +14,7 @@ class CheckDoctorProfile
         $user = $request->user();
 
         if (! $user || $user->role !== 'doctor') {
-            return response()->json(['message' => 'دسترسی غیرمجاز.'], 403);
+            return response()->json(['message' => 'دسترسی غیرمجاز.این بخش مربوط به پزشک است'], 403);
         }
 
         $doctor = $user->doctor;

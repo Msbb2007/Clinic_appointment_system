@@ -145,6 +145,20 @@ class DoctorAvailabilityController extends Controller
 
         $schedule = $service->getDoctorSlots($doctor);
 
+        if ($request->has('status')) {
+            $statusFilter = $request->status; // مثلاً 'booked'
+
+            foreach ($schedule as &$day) {
+                $day['slots'] = array_values(array_filter($day['slots'], function ($slot) use ($statusFilter) {
+                    return $slot['status'] === $statusFilter;
+                }));
+            }
+            unset($day);
+
+            // حذف روزهایی که هیچ اسلاتی با وضعیت درخواست‌شده ندارند//
+            $schedule = array_values(array_filter($schedule, fn($day) => !empty($day['slots'])));
+        }
+
         return response()->json([
             'doctor' => $doctor->full_name,
             'schedule' => $schedule

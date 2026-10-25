@@ -12,7 +12,9 @@ class PatientDoctorController extends Controller
     //لیست تمام پزشکان برای بیماران (همراه با جستجوی بر اساس تخصص یا نام)//
     public function index(Request $request)
     {
-        $query = Doctor::query()->with(['user', 'specialty']);
+        $query = Doctor::query()
+            ->with(['user', 'specialty'])
+            ->where('verification_status', 'approved');
 
         // فیلتر بر اساس نام پزشک //
         if ($request->has('name')) {
@@ -59,6 +61,13 @@ class PatientDoctorController extends Controller
     public function slots(Doctor $doctor, DoctorAvailabilityService $service, Request $request)
     {
         // محاسبه اسلات‌های خالی پزشک با استفاده از سرویس//
+        if ($doctor->verification_status=='pending'||$doctor->verification_status=='rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'پروفایلی برای این پزشک یافت نشد.'
+            ]);
+        }
+
         $schedule = $service->getDoctorSlots($doctor);
 
         //اگر کاربر تاریخ خاصی را فیلتر کرده بود//
@@ -79,6 +88,21 @@ class PatientDoctorController extends Controller
             $schedule = array_values(array_filter($schedule, function ($item) use ($startDate, $endDate) {
                 return $item['date'] >= $startDate && $item['date'] <= $endDate;
             }));
+        }
+
+        //  فیلتر بر اساس وضعیت اسلات (مثلاً فقط available یا فقط booked)//
+        if ($request->has('status')) {
+            $statusFilter = $request->status;
+
+            foreach ($schedule as &$day) {
+                $day['slots'] = array_values(array_filter($day['slots'], function ($slot) use ($statusFilter) {
+                    return $slot['status'] === $statusFilter;
+                }));
+            }
+            unset($day);
+
+           // حذف روزهایی که بعد از فیلتر شدن اسلات، هیچ اسلاتی در آن‌ها باقی نمانده است //
+            $schedule = array_values(array_filter($schedule, fn($day) => !empty($day['slots'])));
         }
 
         return response()->json([

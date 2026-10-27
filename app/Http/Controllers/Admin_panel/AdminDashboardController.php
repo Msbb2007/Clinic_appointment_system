@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Models\Specialty;
 use App\Models\User;
+use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
 {
     public function index()
     {
+        $now = Carbon::now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $today = Carbon::today()->toDateString();
+
         // آمار کلی سیستم
         $totalUsers = User::query()->count();
         $totalPatients = Patient::query()->count();
@@ -28,6 +34,36 @@ class AdminDashboardController extends Controller
         $activeAppointments = Appointment::query()->where('status', 'pending')->count();
         $cancelledAppointments = Appointment::query()->where('status', 'cancelled')->count();
 
+        //  آمار و روندهای ماه جاری (Monthly Trends)//
+        $newUsersThisMonth = User::query()->where('created_at', '>=', $startOfMonth)->count();
+        $appointmentsThisMonth = Appointment::query()->where('created_at', '>=', $startOfMonth)->count();
+
+        //  محبوب‌ترین تخصص‌ها (۵ تخصص برتر بر اساس تعداد نوبت‌ها)//
+        $topSpecialties = Specialty::query()->withCount('doctors')
+            ->orderBy('doctors_count', 'desc')
+            ->take(5)
+            ->get(['id', 'name']);
+
+        //  فعال‌ترین پزشکان (۵ پزشک برتر بر اساس تعداد نوبت‌های تکمیل‌شده)//
+        $topDoctors = Doctor::with(['user:email,phone', 'specialty:id,name'])
+            ->withCount(['appointments' => function ($q) {
+                $q->whereIN('status', ['completed','pending']);
+            }])
+            ->orderBy('appointments_count', 'desc')
+            ->take(5)
+            ->get();
+
+        //   نوبت‌های ثبت‌شده امروز در سیستم (فعالیت‌های زنده)//
+        $recentAppointments = Appointment::with([
+            'patient.user:email,phone',
+            'doctor.user:email,phone',
+            'doctor.specialty:id,name'
+        ])
+            ->whereDate('appointment_date', $today)
+            ->latest()
+            ->take(10)
+            ->get();
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -42,6 +78,15 @@ class AdminDashboardController extends Controller
                     'active_appointments' => $activeAppointments,
                     'completed_appointments' => $completedAppointments,
                     'cancelled_appointments' => $cancelledAppointments,
+                ],
+                'monthly_insights' => [
+                    'new_users_this_month'    => $newUsersThisMonth,
+                    'appointments_this_month' => $appointmentsThisMonth,
+                ],
+                'analytics' => [
+                    'top_specialties'     => $topSpecialties,
+                    'top_doctors'         => $topDoctors,
+                    'recent_appointments' => $recentAppointments,
                 ]
             ]
         ]);

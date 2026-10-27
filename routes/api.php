@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin_panel\AdminAppointmentController;
 use App\Http\Controllers\Admin_panel\AdminDashboardController;
 use App\Http\Controllers\Admin_panel\AdminUserController;
 use App\Http\Controllers\Admin_panel\DoctorVerificationController;
@@ -66,6 +68,7 @@ Route::middleware(['auth:sanctum', CheckDoctorProfile::class])->prefix('doctor')
 
     //خروج از حساب کاربر//
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::delete('/account/delete', [AccountController::class, 'deleteAccount']);
 });
 
 //مسیر های پنل کاربر عادی//
@@ -91,6 +94,7 @@ Route::middleware(['auth:sanctum',CheckPatientUserRole::class])->prefix('patient
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::delete('/account/delete', [AccountController::class, 'deleteAccount']);
 });
 
 //مسیرهای پنل admin//
@@ -110,4 +114,9 @@ Route::middleware(['auth:sanctum',CheckAdminUserRole::class])->prefix('admin')->
 
     // مدیریت کاربران
     Route::get('/users', [AdminUserController::class, 'index']);
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
+
+    // مدیریت نوبت‌های کل سیستم
+    Route::get('/appointments', [AdminAppointmentController::class, 'index']);
+    Route::patch('/appointments/{appointment}/cancel', [AdminAppointmentController::class, 'cancelAppointment']);
 });

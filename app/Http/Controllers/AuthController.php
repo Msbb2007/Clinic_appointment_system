@@ -72,6 +72,13 @@ class AuthController extends Controller
 
         $user = User::query()->where('username', $request->username)->first();
 
+        if (!$user->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حساب کاربری شما توسط مدیر سیستم غیرفعال (مسدود) شده است.'
+            ], 403);
+        }
+
         if ($user->role == 'doctor') {
 
             $doctor = $user->doctor()->first();

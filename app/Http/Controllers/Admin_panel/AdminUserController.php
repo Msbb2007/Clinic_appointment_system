@@ -37,4 +37,21 @@ class AdminUserController extends Controller
         ]);
     }
 
+    public function destroy(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'امکان حذف حساب خودتان وجود ندارد.'
+            ], 422);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'کاربر با موفقیت حذف (آرشیو) شد.'
+        ]);
+    }
+
 }

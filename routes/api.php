@@ -11,6 +11,7 @@ use App\Http\Controllers\Doctor_panel\DoctorAppointmentController;
 use App\Http\Controllers\Doctor_panel\DoctorAvailabilityController;
 use App\Http\Controllers\Doctor_panel\DoctorDashboardController;
 use App\Http\Controllers\Doctor_panel\DoctorExceptionController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Patient_panel\PatientDashboardController;
 use App\Http\Controllers\Patient_panel\PatientDoctorController;
 use App\Http\Controllers\Patient_panel\PatientProfileController;
@@ -66,6 +67,11 @@ Route::middleware(['auth:sanctum', CheckDoctorProfile::class])->prefix('doctor')
     // دریافت اسلات‌های ۴ هفته آینده برای دیدن خود پزشک //
     Route::get('/slots', [DoctorAvailabilityController::class, 'slots']);
 
+    //مسیرهای بخش اعلان ها //
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
     //خروج از حساب کاربر//
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::delete('/account/delete', [AccountController::class, 'deleteAccount']);
@@ -93,6 +99,11 @@ Route::middleware(['auth:sanctum',CheckPatientUserRole::class])->prefix('patient
         Route::delete('/appointments/{id}', [PatientAppointmentController::class, 'cancel']);
     });
 
+    //مسیرهای بخش اعلان ها //
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::delete('/account/delete', [AccountController::class, 'deleteAccount']);
 });
@@ -119,4 +130,12 @@ Route::middleware(['auth:sanctum',CheckAdminUserRole::class])->prefix('admin')->
     // مدیریت نوبت‌های کل سیستم
     Route::get('/appointments', [AdminAppointmentController::class, 'index']);
     Route::patch('/appointments/{appointment}/cancel', [AdminAppointmentController::class, 'cancelAppointment']);
+
+    //مسیرهای بخش اعلان ها //
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
+    //خروج//
+    Route::post('/logout', [AuthController::class, 'logout']);
 });

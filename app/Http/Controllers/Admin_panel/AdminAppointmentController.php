@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin_panel;
 
+use App\Events\AppointmentWasCancelled;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminAppointmentController extends Controller
 {
@@ -56,14 +58,30 @@ class AdminAppointmentController extends Controller
             ], 422);
         }
 
-        $appointment->update([
-            'status' => 'cancelled'
-        ]);
+        DB::beginTransaction();
+        try {
+            $appointment->update([
+                'status' => 'cancelled'
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'نوبت مورد نظر توسط مدیریت لغو شد.',
-            'data'    => $appointment->load(['patient.user', 'doctor.user'])
-        ]);
+            //فراخوانی ایونت برای اجرای پیامک//
+            event(new AppointmentWasCancelled($appointment, 'admin'));
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'نوبت مورد نظر توسط مدیریت لغو شد و اعلان‌ها ارسال گردید.',
+                'data'    => $appointment->load(['patient.user', 'doctor.user'])
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'خطایی رخ داد.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -21,7 +21,7 @@ class DoctorVerifiedMail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        return $this->subject('حساب کاربری شما تایید شد ');
-        //ساختن قالب ویو//
+        return $this->subject('حساب کاربری شما توسط ادمین بررسی شد ');
+        //ساختن قالب ویو و فرستادن بقیه اصلاعات//
     }
 }

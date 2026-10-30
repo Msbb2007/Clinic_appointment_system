@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin_panel;
 
+use App\Events\DoctorWasVerified;
 use App\Http\Controllers\Controller;
 use App\Models\Doctor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DoctorVerificationController extends Controller
 {
@@ -34,20 +36,37 @@ class DoctorVerificationController extends Controller
             'verification_status' => 'required|in:approved,rejected,pending',
         ]);
 
-        $doctor->update([
-            'verification_status' => $request->verification_status
-        ]);
+        DB::beginTransaction();
+        try {
+            // تغییر وضعیت تایید پزشک//
+            $doctor->update([
+                'verification_status' => $request->verification_status
+            ]);
 
-        $statusMessages = [
-            'approved' => 'پزشک با موفقیت تایید شد.',
-            'rejected' => 'پزشک رد صلاحیت شد.',
-            'pending'  => 'وضعیت پزشک به حالت در انتظار تغییر یافت.'
-        ];
+            event(new DoctorWasVerified($doctor));
 
-        return response()->json([
-            'success' => true,
-            'message' => $statusMessages[$request->verification_status],
-            'data'    => $doctor->load('user', 'specialty')
-        ]);
+            DB::commit();
+
+            $statusMessages = [
+                'approved' => 'پزشک با موفقیت تایید شد.',
+                'rejected' => 'پزشک رد صلاحیت شد.',
+                'pending'  => 'وضعیت پزشک به حالت در انتظار تغییر یافت.'
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => $statusMessages[$request->verification_status],
+                'data'    => $doctor->load('user', 'specialty')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'خطایی رخ داد.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+
     }
 }

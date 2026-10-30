@@ -124,6 +124,8 @@ Route::middleware(['auth:sanctum',CheckAdminUserRole::class])->prefix('admin')->
     Route::delete('/specialties/{specialty}', [SpecialtyController::class, 'destroy']);
 
     // مدیریت کاربران
+    Route::post('/store_user', [AdminUserController::class, 'storeUser']);
+    Route::post('/store_doctor', [AdminUserController::class, 'storeDoctor']);
     Route::get('/users', [AdminUserController::class, 'index']);
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
 

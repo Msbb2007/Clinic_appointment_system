@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DoctorWasRegistered;
 use App\Http\Requests\DoctorRegisterRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Doctor;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -34,32 +36,44 @@ class AuthController extends Controller
 
     // ثبت‌نام پزشک جدید//
     public function doctorRegister(DoctorRegisterRequest $request){
-        $user = User::query()->create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'role' => 'doctor',
-        ]);
 
-        $doctor = Doctor::query()->create([
-            'user_id' => $user->id,
-            'full_name' => $request->full_name,
-            'medical_license_number' => $request->medical_license_number,
-            'bio' => $request->bio,
-            'specialty_id' => $request->specialty_id,
-            'consultation_fee' => $request->consultation_fee,
-            'verification_status' => 'pending',
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::query()->create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'role' => 'doctor',
+            ]);
+
+            $doctor = Doctor::query()->create([
+                'user_id' => $user->id,
+                'full_name' => $request->full_name,
+                'medical_license_number' => $request->medical_license_number,
+                'bio' => $request->bio,
+                'specialty_id' => $request->specialty_id,
+                'consultation_fee' => $request->consultation_fee,
+                'verification_status' => 'pending',
+            ]);
+
+            event(new DoctorWasRegistered($doctor));
+
+            DB::commit();
+
+            $token = $doctor->createToken('clinic_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'ثبت‌ نام پزشک انجام شد.منتظر تایید اطلاعات توسط ادمین باشید',
+                'data' => $doctor,
+                'token' => $token
+            ],201);
 
 
-        $token = $doctor->createToken('clinic_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'ثبت‌ نام پزشک انجام شد.منتظر تایید اطلاعات توسط ادمین باشید',
-            'data' => $doctor,
-            'token' => $token
-        ],201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     // ورود به سیستم//
@@ -72,11 +86,25 @@ class AuthController extends Controller
 
         $user = User::query()->where('username', $request->username)->first();
 
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حساب کاربری با این مشخصات یافت نشد.'
+            ], 403);
+        }
+
         if (!$user->is_active) {
             return response()->json([
                 'success' => false,
                 'message' => 'حساب کاربری شما توسط مدیر سیستم غیرفعال (مسدود) شده است.'
             ], 403);
+        }
+
+        if(!Hash::check($request->password,$user->password)){
+            return response()->json([
+                'success' => false,
+                'message' => 'رمزعبور نادرست است'
+            ]);
         }
 
         if ($user->role == 'doctor') {

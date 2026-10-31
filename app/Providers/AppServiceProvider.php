@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Appointment;
+use App\Observers\AppointmentObserver;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -25,5 +27,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('is-patient', function ($user) {
             return $user->patient !== null;
         });
+
+        //ثبت Observer روی مدل Appointment//
+        Appointment::observe(AppointmentObserver::class);
     }
 }

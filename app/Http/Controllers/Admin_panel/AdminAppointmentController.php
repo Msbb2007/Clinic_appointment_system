@@ -84,4 +84,22 @@ class AdminAppointmentController extends Controller
             ], 500);
         }
     }
+
+    //نمایش آزمایشی لاگ ها برای تست observer//
+    public function getAppointmentLogs($id)
+    {
+        // پیدا کردن نوبت همراه با لاگ‌های ثبت شده‌ی آن (از جدید به قدیم)//
+        $appointment = Appointment::with(['logs' => function($query) {
+            $query->latest();
+        }])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'current_status' => $appointment->status,
+            'logs_count' => $appointment->logs->count(),
+            'logs' => $appointment->logs
+        ]);
+    }
 }

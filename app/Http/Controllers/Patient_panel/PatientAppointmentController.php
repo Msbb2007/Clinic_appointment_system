@@ -7,7 +7,9 @@ use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Services\DoctorAvailabilityService;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PatientAppointmentController extends Controller
 {
@@ -60,36 +62,54 @@ class PatientAppointmentController extends Controller
             ], 422);
         }
 
-        //  بررسی اینکه آیا این اسلات قبلاً رزرو شده است یا خیر//
-        $isAlreadyBooked = Appointment::query()->where('doctor_id', $doctorId)
-            ->where('appointment_date', $date)
-            ->where('start_time', $startTime)
-            ->whereIn('status', ['pending', 'completed']) // نوبت‌های رزرو شده یا در تکمیل شده//
-            ->exists();
+        //استفاده از Transaction برای مدیریت امنیت همزمانی//
+        try {
+            return DB::transaction(function () use ($doctorId, $date, $startTime, $endTime, $patient, $request) {
 
-        if ($isAlreadyBooked) {
-            return response()->json([
-                'success' => false,
-                'message' => 'این تایم قبلاً توسط بیمار دیگری رزرو شده است.'
-            ], 409);
+                $isAlreadyBooked = Appointment::query()
+                    ->where('doctor_id', $doctorId)
+                    ->where('appointment_date', $date)
+                    ->where('start_time', $startTime)
+                    ->whereIn('status', ['pending', 'completed', 'cancelled'])
+                    ->lockForUpdate()
+                    ->exists();
+
+                if ($isAlreadyBooked) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'این تایم قبلاً توسط بیمار دیگری رزرو شده است.'
+                    ], 409);
+                }
+
+                // ثبت نوبت نهایی//
+                $appointment = Appointment::query()->create([
+                    'patient_id' => $patient->id,
+                    'doctor_id' => $doctorId,
+                    'appointment_date' => $date,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'status' => 'pending',
+                    'description' => $request->description
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'نوبت شما با موفقیت رزرو شد.',
+                    'data' => $appointment
+                ], 201);
+            });
+
+        } catch (QueryException $e) {
+           // کد خطای 23505 در PostgreSQL نشان‌دهنده نقض Unique Constraint است//
+            if ($e->getCode() === '23505') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'این تایم لحظاتی پیش توسط بیمار دیگری رزرو شد.'
+                ], 409);
+            }
+
+            throw $e;
         }
-
-        // ثبت نوبت نهایی//
-        $appointment = Appointment::query()->create([
-            'patient_id' => $patient->id,
-            'doctor_id' => $doctorId,
-            'appointment_date' => $date,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'status' => 'pending',
-            'description' => $request->description
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'نوبت شما با موفقیت رزرو شد.',
-            'data' => $appointment
-        ], 201);
     }
 
     // مشاهده لیست نوبت‌های بیمار لاگین‌شده//

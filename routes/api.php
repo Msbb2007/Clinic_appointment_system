@@ -56,6 +56,9 @@ Route::middleware(['auth:sanctum', CheckDoctorProfile::class])->prefix('doctor')
     //مشاهده و مدیریت نوبت ها//
     Route::get('/appointments', [DoctorAppointmentController::class, 'index']);
     Route::put('/appointments/{id}/status', [DoctorAppointmentController::class, 'updateStatus']);
+    Route::post('/appointments/{id}/cancel', [DoctorAppointmentController::class, 'cancelAppointmentByDoctor']);
+    Route::delete('/appointments/{id}/soft-delete', [DoctorAppointmentController::class, 'softDeleteAppointment']);
+    Route::delete('/appointments/{id}/force-delete', [DoctorAppointmentController::class, 'forceDeleteAppointment']);
 
     //داشبورد آماری//
     Route::get('/dashboard/stats', [DoctorDashboardController::class, 'stats']);
@@ -132,6 +135,8 @@ Route::middleware(['auth:sanctum',CheckAdminUserRole::class])->prefix('admin')->
     // مدیریت نوبت‌های کل سیستم
     Route::get('/appointments', [AdminAppointmentController::class, 'index']);
     Route::patch('/appointments/{appointment}/cancel', [AdminAppointmentController::class, 'cancelAppointment']);
+    // دریافت تاریخچه و لاگ‌های یک نوبت
+    Route::get('/appointments/{id}/logs', [AdminAppointmentController::class, 'getAppointmentLogs']);
 
     //مسیرهای بخش اعلان ها //
     Route::get('/notifications', [NotificationController::class, 'index']);

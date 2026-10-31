@@ -53,7 +53,11 @@ return [
         'medical_license_number' => 'کد تظام پزشکی',
         'bio' => 'بیوگرافی',
         'consultation_fee' => 'هزینه ویزیت',
-        'verification_status' => 'وضعییت تایید'
+        'verification_status' => 'وضعییت تایید',
+        'rrule' => '  قاعده تکرار نوبت',
+        'start_time'   => 'ساعت شروع شیفت ',
+        'end_time'     => 'ساعت پایان شیفت ',
+        'slot_duration'=> 'مدت زمان هر نوبت ',
     ],
 
 ];

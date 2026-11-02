@@ -3,10 +3,9 @@
 # 🏥 Enterprise Clinic Management API
 ### A Scalable, Event-Driven REST API for Doctor Appointment Booking
 
-[![Laravel](https://img.shields.io/badge/Laravel-10.x/11.x-red?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-13-red?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
-[![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple?style=for-the-badge&logo=php)](https://www.php.net)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-purple?style=for-the-badge&logo=php)](https://www.php.net)
 
 </div>
 
@@ -37,14 +36,14 @@ The system relies heavily on modern architectural patterns including **Observers
 ### 🛡️ Admin Capabilities
 * Approve or reject pending doctor registration requests.
 * Provision new doctor accounts and profiles atomically within single database transactions.
-* Full CRUD over specialties, hospitals, clinics, and system users.
+* Full CRUD over specialties, clinics, and system users.
 * Access platform-wide audit logs, status histories, and aggregate operational reports.
 
 ---
 
 ## 🛠️ Tech Stack & Standards
 
-* **Backend Framework:** Laravel (PHP 8.2+)
+* **Backend Framework:** Laravel 13 (PHP 8.3+)
 * **Database Engine:** PostgreSQL 15+ (Utilizing native row-locking & composite unique index constraints)
 * **Authentication:** Laravel Sanctum (`Authorization: Bearer <token>`)
 * **Background Processing:** Laravel Queues (Database driver for asynchronous email & notification dispatches)
@@ -61,7 +60,8 @@ Lists across all API endpoints are standard paginated (`15 items per page`). Err
 | Data Type | Standard Format | Example |
 | :--- | :--- | :--- |
 | **Date** | `Y-m-d` | `2026-11-05` |
-| **Time of Day** | `H:i` | `09:00` |
+| **Start_time** | `H:i` | `09:00` |
+| **end_time** | `H:i` | `09:30` |
 | **Date & Time** | `Y-m-d H:i:s` | `2026-11-05 09:00:00` |
 
 ---
@@ -129,26 +129,30 @@ Online booking systems face critical **Race Conditions** when multiple users att
 ## 🗄️ Database Schema Overview
 
 ```text
-  +------------------+         +--------------------+         +-----------------------+
-  |      users       |         |      doctors       |         |   doctor_schedules    |
-  +------------------+         +--------------------+         +-----------------------+
-  | id (PK)          |<-------1| id (PK)            |<-------1| id (PK)               |
-  | full_name        |         | user_id (FK)       |         | doctor_id (FK)        |
-  | email (Unique)   |         | specialty_id (FK)  |         | rrule_string          |
-  | phone (Unique)   |         | medical_code       |         | start_time / end_time |
-  | password         |         | verification_status|         | slot_duration         |
-  | role (Enum)      |         +--------------------+         +-----------------------+
-  +------------------+                   ^
+  +------------------+         +--------------------+         +-----------------------+            +-----------------------+
+  |      users       |         |      doctors       |         | doctor_availablities  |            |   doctor_exceptions   |
+  +------------------+         +--------------------+         +-----------------------+            +-----------------------+
+  | id (PK)          |<-------1| id (PK)            |<-------1| id (PK)               |1-------->  | id (PK)               |
+  | username         |         | user_id (FK)       |         |                       |            | doctor_id (FK)        |
+                               | full_name          |         | doctor_id (FK)        |            | rrule_string          |
+  | email (Unique)   |         | specialty_id (FK)  |         | rrule_string          |            | start_time / end_time |         
+  | phone (Unique)   |         | medical_code       |         | start_time / end_time |            | slot_duration         |
+  | password         |         | verification_status|         | slot_duration         |            +-----------------------+
+  | role ()          |         +--------------------+         +-----------------------+
+  +------------------+                   ^        |
+           ^                             |        |
+           |                             |        |
+           |                             |        v
+  +------------------+                   |       +------------------+  
+  |   patients       |                   |       |   specialties    |   
+  +------------------+                   |       +------------------+  
+  | id (PK)          |                   |       | id (PK)          |  
+  | user_id (FK)     |                   |       | name (FK)        | 
+  | full_name        |                   |       | description      | 
+  | national_code    |                   |       +------------------+  
+  +------------------+                   |
            ^                             |
-           |                             |
-  +------------------+                   |
-  |   patients       |                   |
-  +------------------+                   |
-  | id (PK)          |                   |
-  | user_id (FK)     |                   |
-  +------------------+                   |
-           ^                             |
-           |                             |
+           |                             |                                
   +-----------------------------------------------------------------------------------+
   |                                 appointments                                      |
   +-----------------------------------------------------------------------------------+
@@ -157,7 +161,7 @@ Online booking systems face critical **Race Conditions** when multiple users att
   | doctor_id (FK)                                                                    |
   | appointment_date                                                                  |
   | start_time / end_time                                                             |
-  | status (pending, completed, cancelled, no_show)                                   |
+  | status (pending, completed, cancelled)                                            |
   | CONSTRAINT: UNIQUE(doctor_id, appointment_date, start_time)                       |
   +-----------------------------------------------------------------------------------+
                                          |
@@ -225,7 +229,3 @@ Online booking systems face critical **Race Conditions** when multiple users att
      ```
 
 ---
-
-## 📄 License
-
-This enterprise API project is open-sourced software licensed under the [MIT License](LICENSE).

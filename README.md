@@ -1,58 +1,57 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 🏥 Enterprise Clinic Management System
+### A Scalable, Secure, and Event-Driven Clinic Management Architecture
 
-## About Laravel
+[![Laravel](https://img.shields.io/badge/Laravel-10.x/11.x-red?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple?style=for-the-badge&logo=php)](https://www.php.net)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+</div>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📖 About The Project
+This project is an enterprise-grade clinic management system designed to handle online appointment bookings, advanced doctor schedule management, and 100% data integrity under high-concurrency conditions. The system architecture is built upon modern design patterns including **Observers**, **Events & Listeners**, and database-level transaction locking.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Core Features
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* **🔐 Authentication & RBAC:** Multi-tier user management (Admin, Doctor, Patient) powered by Laravel Sanctum.
+* **📅 Dynamic Scheduling:** Utilization of the iCalendar standard (`RRule`) to define recurring doctor shifts and availability slots.
+* **⚡ Double Booking Prevention:** Implementation of exclusive row-level locking (`lockForUpdate`) combined with PostgreSQL Unique Constraints.
+* **📝 Automated Audit Trails:** Automatic tracking of appointment status changes using Laravel Observers (`AppointmentLog`).
+* **🔔 Queue-based Notifications:** Asynchronous email and database notifications for user registrations, doctor verifications, and cancellations.
+* **🇮🇷 Full Localization:** Localized validation rules and error messages tailored for Persian-speaking users.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 🛠️ Tech Stack
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+* **Backend Framework:** Laravel (PHP 8.2+)
+* **Database:** PostgreSQL (with native support for Unique Constraints and Transaction Locking)
+* **Queue & Background Jobs:** Laravel Queue (for asynchronous notification handling)
+* **Scheduling Standard:** `rlanvin/php-rrule` for parsing and generating recurrence rules
+* **Authentication:** Laravel Sanctum (API Tokens)
 
-```bash
-composer require laravel/boost --dev
+---
 
-php artisan boost:install
-```
+## 🏛️ Architecture
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The system follows a layered, event-driven architecture pattern:
+1. **Observers:** To automatically monitor model lifecycle changes (e.g., tracking appointment state transitions and logging audit data).
+2. **Events & Listeners:** Decoupling business logic from notification dispatching, processed safely inside background queues (`ShouldQueue`).
+3. **Database Concurrency Control:** Enforcing strict data consistency directly at the database engine level, independent of application runtime state.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🔒 Database Challenges & Concurrency Solutions
 
-## Code of Conduct
+One of the biggest challenges in online booking systems is the **Race Condition** (where two concurrent users attempt to book the exact same slot within milliseconds of each other).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Implemented Solutions:
+1. **Database-Level Unique Index:** Applied a tactical composite unique index on the `appointments` table:
+   ```sql
+   UNIQUE (doctor_id, appointment_date, start_time)

@@ -3,10 +3,9 @@
 # 🏥 Enterprise Clinic Management System
 ### A Scalable, Secure, and Event-Driven Clinic Management Architecture
 
-[![Laravel](https://img.shields.io/badge/Laravel-10.x/11.x-red?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-13.x/11.x-red?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-blue?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
-[![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple?style=for-the-badge&logo=php)](https://www.php.net)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-purple?style=for-the-badge&logo=php)](https://www.php.net)
 
 </div>
 

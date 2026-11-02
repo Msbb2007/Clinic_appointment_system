@@ -23,12 +23,12 @@ The system relies heavily on modern architectural patterns including **Observers
 
 ### 👨‍⚕️ Doctor Capabilities
 * Manage personal medical profile (bio, specialty, medical council code).
-* Define dynamic recurring work availability (`RRule`) per hospital/clinic location with start/end times and slot durations.
+* Define dynamic recurring work availability (`RRule`)  with start/end times and slot durations.
 * Register leaves and temporary unavailability periods.
 * Track daily appointment schedules, update appointment statuses (`completed`, `cancelled`), or force-delete incorrect entries.
 
 ### 👥 Patient Capabilities
-* Search and list verified doctors by specialty, location, or name.
+* Search and list verified doctors by specialty or name.
 * Fetch dynamically generated free time slots for up to 30 days ahead.
 * Instantly book, list, view details, or cancel upcoming appointments.
 * Receive real-time database and email notifications for booking events or cancellations.
@@ -36,7 +36,7 @@ The system relies heavily on modern architectural patterns including **Observers
 ### 🛡️ Admin Capabilities
 * Approve or reject pending doctor registration requests.
 * Provision new doctor accounts and profiles atomically within single database transactions.
-* Full CRUD over specialties, clinics, and system users.
+* Full CRUD over specialties and system users.
 * Access platform-wide audit logs, status histories, and aggregate operational reports.
 
 ---

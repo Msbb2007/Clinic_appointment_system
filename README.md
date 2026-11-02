@@ -55,16 +55,94 @@ The system relies heavily on modern architectural patterns including **Observers
 
 ## 📊 Data & Response Formats
 
-Lists across all API endpoints are standard paginated (`15 items per page`). Errors consistently return JSON payloads accompanied by proper HTTP status codes (`401 Unauthenticated`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`).
+All API responses are returned as standardized JSON payloads. Endpoint lists feature standard Laravel pagination wrapper metadata alongside HTTP status codes (`401 Unauthenticated`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`).
 
-| Data Type | Standard Format | Example |
-| :--- | :--- | :--- |
-| **Date** | `Y-m-d` | `2026-11-05` |
-| **Start_time** | `H:i` | `09:00` |
-| **end_time** | `H:i` | `09:30` |
-| **Date & Time** | `Y-m-d H:i:s` | `2026-11-05 09:00:00` |
+### Standard Response Structure (e.g., Patient Appointments List)
 
----
+```json
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 4,
+                "doctor_name": "احمد مسعودی",
+                "specialty": "قلب و عروق",
+                "appointment_date": "2026-11-07",
+                "start_time": "09:00:00",
+                "end_time": "09:30:00",
+                "status": "cancelled",
+                "fee": "350000",
+                "created_at": "2026-10-31 13:13:08"
+            },
+            {
+                "id": 2,
+                "doctor_name": "احمد مسعودی",
+                "specialty": "قلب و عروق",
+                "appointment_date": "2026-11-02",
+                "start_time": "12:00:00",
+                "end_time": "12:30:00",
+                "status": "cancelled",
+                "fee": "350000",
+                "created_at": "2026-10-24 23:02:05"
+            },
+            {
+                "id": 3,
+                "doctor_name": "احمد مسعودی",
+                "specialty": "قلب و عروق",
+                "appointment_date": "2026-11-02",
+                "start_time": "09:00:00",
+                "end_time": "09:30:00",
+                "status": "pending",
+                "fee": "350000",
+                "created_at": "2026-10-31 13:09:29"
+            },
+            {
+                "id": 1,
+                "doctor_name": "احمد مسعودی",
+                "specialty": "قلب و عروق",
+                "appointment_date": "2026-10-31",
+                "start_time": "12:00:00",
+                "end_time": "12:30:00",
+                "status": "cancelled",
+                "fee": "350000",
+                "created_at": "2026-10-24 22:39:49"
+            }
+        ],
+        "first_page_url": "http://127.0.0.1:8000/api/patient/appointments?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "http://127.0.0.1:8000/api/patient/appointments?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "pagination.previous",
+                "page": null,
+                "active": false
+            },
+            {
+                "url": "http://127.0.0.1:8000/api/patient/appointments?page=1",
+                "label": "1",
+                "page": 1,
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "pagination.next",
+                "page": null,
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "http://127.0.0.1:8000/api/patient/appointments",
+        "per_page": 10,
+        "prev_page_url": null,
+        "to": 4,
+        "total": 4
+    }
+}
+```
 
 ## 📐 Deep-Dive Design Decisions
 

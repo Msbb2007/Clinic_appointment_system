@@ -147,7 +147,7 @@ All API responses are returned as standardized JSON payloads. Endpoint lists fea
 ## 📐 Deep-Dive Design Decisions
 
 ### 1. User & Identity Architecture (RBAC)
-* A unified `users` table holds core identity credentials and a `role` enum (`admin`, `doctor`, `patient`). Detailed medical attributes (council registration code, specialty ID, bio) reside in a dedicated `doctors` table linked via foreign key.
+* A unified `users` table holds core identity credentials and a `role` (`admin`, `doctor`, `patient`). Detailed medical attributes (council registration code, specialty ID, bio) reside in a dedicated `doctors` table linked via foreign key.
 * Public self-registration assigns the `patient` role by default. Admin-initiated doctor setup handles user creation, profile attachment, and initial verification state within a single atomic database transaction.
 * Accounts utilize **Soft Deletes**. Deleting a doctor cascades account revocation and token invalidation. To preserve scheduling integrity, accounts with active upcoming appointments cannot be soft-deleted (`409 Conflict`). Email addresses and medical council codes of deleted entities remain permanently reserved in audit logs.
 

@@ -290,7 +290,7 @@ Online booking systems face critical **Race Conditions** when multiple users att
    ```bash
    php artisan migrate --seed
    ```
-   * *Default Seeded Admin Credentials:* `admin@example.com` / `adminPassword123`
+   * *Default Seeded Admin Credentials:* `admin_username` / `adminPassword123`
 
 5. **Start HTTP server, background queue worker, and task scheduler:**
    * **Terminal 1 (API Server):**

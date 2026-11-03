@@ -13,7 +13,7 @@
 
 ## 📖 About The Project
 
-This repository houses a headless, enterprise-grade RESTful API built for high-concurrency medical appointment booking and doctor scheduling. Designed with **Laravel** and **PostgreSQL**, it contains no web frontend—all interactions are handled via JSON endpoints (documented in the included Postman collection). 
+This repository houses a headless, enterprise-grade RESTful API built for high-concurrency medical appointment booking and doctor scheduling. Designed with **Laravel** and **PostgreSQL**, it contains no web frontend—all interactions are handled via JSON endpoints.
 
 The system relies heavily on modern architectural patterns including **Observers**, **Queue-backed Event-Listeners**, **iCalendar Recurrence Parsing (RRule)**, and **Database-Level Transaction Locking** to guarantee 100% data integrity under heavy concurrent traffic.
 
